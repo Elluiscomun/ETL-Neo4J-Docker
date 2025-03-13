@@ -1,0 +1,42 @@
+services:
+  neo4j:
+    image: neo4j:latest
+    container_name: neo4j
+    ports:
+      - "7474:7474"  # Puerto para Neo4j Browser
+      - "7687:7687"  # Puerto para conexiones Bolt
+    volumes:
+      - neo4j_data:/data
+      - ./import:/import
+    environment:
+      NEO4J_AUTH: neo4j/password  # Usuario y contraseña
+
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    ports:
+      - "5432:5432"  # Puerto para PostgreSQL
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: etl_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/create_db.sql:/docker-entrypoint-initdb.d/init_db.sql
+
+  api:
+    build: ./api  # Carpeta donde está el código de la API
+    container_name: api
+    ports:
+      - "3000:3000"  # Puerto para la API (ajusta según tu lenguaje)
+    volumes:
+      - ./api:/app  # Montar el código de la API en el contenedor
+      - ./data:/mnt/data 
+    depends_on:
+      - neo4j
+      - postgres   
+
+volumes:
+  neo4j_data:
+  postgres_data:
+
