@@ -2,7 +2,7 @@ const express = require('express');
 const neo4j = require('neo4j-driver');
 const { Client } = require('pg');
 const fs = require('fs');
-const { Parser } = require('json2csv'); // Importar json2csv para la exportación
+const { Parser } = require('json2csv'); 
 
 const app = express();
 const port = 3000;
@@ -21,6 +21,19 @@ const pgClient = new Client({
 
 // Middleware para parsear JSON
 app.use(express.json());
+
+app.get('/api/extract', async (req, res) => {
+    const session = driver.session();
+    try {
+      const result = await session.run('MATCH (n) RETURN n');
+      const data = result.records.map(record => record.get('n').properties);
+      res.json(data);
+    } catch (error) {
+      res.status(500).send(error);
+    } finally {
+      session.close();
+    }
+  });
 
 // Función para transformar datos de Películas (Dataset A)
 function transformMovieData(movie) {
